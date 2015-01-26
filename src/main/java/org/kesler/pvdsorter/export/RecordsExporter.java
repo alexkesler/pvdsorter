@@ -185,8 +185,13 @@ public class RecordsExporter {
 
     public void save(Window stage) {
         FileChooser fileChooser = new FileChooser();
-        //fileChooser.setMultiSelectionEnabled(false);
-        fileChooser.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("Файл Excel",".xlsx"));
+        fileChooser.setTitle("Выберите файл для сохранения");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Файл Excel","*.xlsx")
+        );
+        fileChooser.setInitialFileName("Ведомость " +
+                records.get(0).getBranch().getName() + " " +
+        new SimpleDateFormat("dd.MM.yyyy").format(new Date()));
 
         File file = null;
 
