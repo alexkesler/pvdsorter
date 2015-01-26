@@ -17,6 +17,7 @@
         <menus>
           <Menu mnemonicParsing="false" text="Меню">
             <items>
+              <MenuItem mnemonicParsing="false" onAction="#handleClearMenuItemAction" text="Очистить" />
               <MenuItem mnemonicParsing="false" onAction="#handleCloseMenuItemAction" text="Закрыть" />
             </items>
           </Menu>

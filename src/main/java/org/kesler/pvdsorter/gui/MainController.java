@@ -61,6 +61,8 @@ public class MainController
     private final ObservableList<Branch> observableBranches = FXCollections.observableArrayList();
     private final ObservableList<Record> observableRecords = FXCollections.observableArrayList();
 
+    private BranchesProcessor branchesProcessor = new BranchesProcessor(observableBranches);
+
     @Autowired
     private RecordService recordService;
 
@@ -112,6 +114,12 @@ public class MainController
         exportBranch(selectedBranch);
     }
 
+
+    @FXML
+    protected void handleClearMenuItemAction(ActionEvent event) {
+        log.info("Clear lists");
+        initLists();
+    }
 
     @FXML
     protected void handleCloseMenuItemAction(ActionEvent event) {
@@ -179,7 +187,42 @@ public class MainController
 
     }
 
+    ///// Вспомогательные классы
 
+    class BranchesProcessor {
+        private final ObservableList<Branch> obervableBranches;
+
+        BranchesProcessor(ObservableList<Branch> observableBranches) {
+            this.obervableBranches = observableBranches;
+        }
+
+        Branch getAllBranch() {
+            Branch allBranch = null;
+            for (Branch branch : obervableBranches) {
+                if (branch.isAll()) {
+                    allBranch=branch;
+                }
+            }
+            return allBranch;
+        }
+
+        Branch addBranchIfNotExist(Branch branch) {
+            int branchIndex = observableBranches.indexOf(branch);
+            Branch storedBranch;
+            if (branchIndex>0) {
+                storedBranch = observableBranches.get(branchIndex);
+            } else {
+                storedBranch = branch;
+                observableBranches.addAll(branch);
+            }
+            return storedBranch;
+        }
+
+
+    }
+
+
+    /// Классы для отработки логики в отдельном потоке
 
     class RecordsReader extends Task<Collection<Record>> {
         private final Logger log = LoggerFactory.getLogger(getClass());
@@ -242,15 +285,9 @@ public class MainController
                 record = records.iterator().next();
             }
 
-            Branch allBranch = observableBranches.get(0);
-            int branchIndex = observableBranches.indexOf(record.getBranch());
-            Branch branch;
-            if (branchIndex>0) {
-                branch = observableBranches.get(branchIndex);
-            } else {
-                branch = record.getBranch();
-                observableBranches.addAll(record.getBranch());
-            }
+            Branch allBranch = branchesProcessor.getAllBranch();
+            Branch branch = branchesProcessor.addBranchIfNotExist(record.getBranch());
+
             allBranch.addRecord(record);
             branch.addRecord(record);
 
@@ -287,6 +324,7 @@ public class MainController
 
 
      }
+
 
     class RecordsExporterWorker extends Task<Void> {
         private RecordsExporter recordsExporter;
