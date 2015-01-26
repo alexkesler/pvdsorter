@@ -8,7 +8,7 @@
     <name>PVDSorter</name>
 
     <packaging>jar</packaging>
-    <version>0.1.0.0</version>
+    <version>0.1.0.1</version>
     
     <organization>
         <!-- Used as the 'Vendor' for JNLP generation -->
@@ -27,6 +27,16 @@
     <build>
 
         <finalName>PVDSorter</finalName>
+
+
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh</artifactId>
+                <version>1.0</version>
+            </extension>
+        </extensions>
+
 
         <plugins>
 
@@ -132,23 +142,24 @@
                         <configuration>
                             <headerType>gui</headerType>
                             <outfile>target/${project.artifactId}.exe</outfile>
-                            <jar>target/${project.artifactId}.jar</jar>
+                            <jar>target/lib/getdown-1.4.jar</jar>
                             <errTitle>${product.title}</errTitle>
                             <icon>src/main/resources/images/Bibble.ico</icon>
+                            <cmdLine>./</cmdLine>
                             <splash>
                                 <file>src/main/resources/images/mfc.bmp</file>
                                 <waitForWindow>true</waitForWindow>
                                 <timeout>10</timeout>
                             </splash>
                             <classPath>
-                                <mainClass>org.kesler.pvdsorter.PVDSorterApp</mainClass>
+                                <mainClass>com.threerings.getdown.launcher.Getdown</mainClass>
                                 <addDependencies>true</addDependencies>
                                 <preCp>anything</preCp>
                             </classPath>
                             <jre>
                                 <path>jre8</path>
                                 <!--<minVersion>1.8.0</minVersion> -->
-                                <maxHeapSize>256</maxHeapSize>
+                                <!--<maxHeapSize>256</maxHeapSize>-->
                             </jre>
                             <versionInfo>
                                 <fileVersion>${project.version}</fileVersion>
@@ -167,6 +178,46 @@
                 </executions>
             </plugin>
 
+            <plugin>
+                <groupId>org.bitbucket.joxley</groupId>
+                <artifactId>getdown-maven-plugin</artifactId>
+                <version>0.0.1</version>
+                <configuration>
+                    <appdir>target</appdir> <!-- Defaults to target -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>digest</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>wagon-maven-plugin</artifactId>
+                <version>1.0-beta-5</version>
+                <configuration>
+                    <serverId>AppHost</serverId>
+                    <fromDir>${project.build.directory}</fromDir>
+                    <includes>lib/*,${project.build.finalName}.jar,getdown.txt,digest.txt
+                    </includes>
+                    <url>scp://10.10.0.118</url>
+                    <toDir>/srv/www/default/public_html/pvdsorter</toDir>
+                    <optimize>true</optimize>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>upload-to-apphost</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>upload</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
         </plugins>
     </build>
@@ -238,6 +289,16 @@
             <artifactId>poi-ooxml</artifactId>
             <version>3.9</version>
         </dependency>
+
+
+        <!--  Autoupdating  -->
+
+        <dependency>
+            <groupId>com.threerings</groupId>
+            <artifactId>getdown</artifactId>
+            <version>1.4</version>
+        </dependency>
+
 
         <!-- Logging  -->
 
