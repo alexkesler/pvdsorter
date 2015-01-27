@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
 
 @Component
@@ -44,7 +45,7 @@ public class MainController
     @FXML
     protected ListView<Branch> branchesListView;
     @FXML
-    protected TableView<Record> recordsTableView;
+    protected TreeTableView<Record> recordsTreeTableView;
     @FXML
     protected ProgressIndicator searchProgressIndicator;
     @FXML
@@ -60,8 +61,11 @@ public class MainController
 
     private final ObservableList<Branch> observableBranches = FXCollections.observableArrayList();
     private final ObservableList<Record> observableRecords = FXCollections.observableArrayList();
+    private final ObservableList<Record> observableDdRecords = FXCollections.observableArrayList();
 
     private BranchesProcessor branchesProcessor = new BranchesProcessor(observableBranches);
+    private RecordsProcessor recordsProcessor = new RecordsProcessor(observableBranches,observableDdRecords);
+    private RecordsTreeProcessor recordsTreeProcessor = new RecordsTreeProcessor();
 
     @Autowired
     private RecordService recordService;
@@ -69,14 +73,13 @@ public class MainController
     @FXML
     protected void initialize() {
         branchesListView.setItems(observableBranches);
-        recordsTableView.setItems(observableRecords);
+        recordsTreeTableView.setShowRoot(false);
         initLists();
 
         branchesListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Branch>() {
             @Override
             public void changed(ObservableValue<? extends Branch> observable, Branch oldValue, Branch newValue) {
-                observableRecords.clear();
-                observableRecords.addAll(newValue.getRecords());
+                recordsTreeTableView.setRoot(recordsTreeProcessor.getRootForRecords(newValue.getRecords()));
             }
         });
     }
@@ -190,15 +193,15 @@ public class MainController
     ///// Вспомогательные классы
 
     class BranchesProcessor {
-        private final ObservableList<Branch> obervableBranches;
+        private final ObservableList<Branch> obersvableBranches;
 
         BranchesProcessor(ObservableList<Branch> observableBranches) {
-            this.obervableBranches = observableBranches;
+            this.obersvableBranches = observableBranches;
         }
 
         Branch getAllBranch() {
             Branch allBranch = null;
-            for (Branch branch : obervableBranches) {
+            for (Branch branch : obersvableBranches) {
                 if (branch.isAll()) {
                     allBranch=branch;
                 }
@@ -216,6 +219,78 @@ public class MainController
                 observableBranches.addAll(branch);
             }
             return storedBranch;
+        }
+
+
+    }
+
+    class RecordsProcessor {
+        private final ObservableList<Branch> observableBranches;
+        private final ObservableList<Record> observableDdRecords;
+
+        RecordsProcessor(ObservableList<Branch> observableBranches, ObservableList<Record> observableDdRecords) {
+            this.observableBranches = observableBranches;
+            this.observableDdRecords = observableDdRecords;
+        }
+
+        void addRecord(Record record) {
+
+            if (record.getPrevRegnum() == null || record.getPrevRegnum().isEmpty()) {
+                Branch branch = branchesProcessor.addBranchIfNotExist(record.getBranch());
+                Branch allBranch = branchesProcessor.getAllBranch();
+                branch.addRecord(record);
+                allBranch.addRecord(record);
+
+                findNextRecords(record);
+            } else {
+                if (!findPrevRecord(record))
+                    observableDdRecords.add(record);
+            }
+
+        }
+
+        private boolean findPrevRecord(Record record) {
+            Branch allBranch = branchesProcessor.getAllBranch();
+            for (Record r : allBranch.getRecords()) {
+                if (r.getRegnum().equals(record.getPrevRegnum())) {
+                    r.getNextRecords().add(record);
+                    record.setPrevRecord(r);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void findNextRecords(Record record) {
+            Iterator<Record> recordIterator = observableDdRecords.iterator();
+            while (recordIterator.hasNext()) {
+                Record r = recordIterator.next();
+                if (r.getPrevRegnum().equals(record.getRegnum())) {
+                    r.setPrevRecord(record);
+                    record.getNextRecords().add(r);
+                    recordIterator.remove();
+                }
+            }
+        }
+
+
+
+    }
+
+    class RecordsTreeProcessor {
+
+        TreeItem<Record> getRootForRecords(Collection<Record> records) {
+            TreeItem<Record> rootTreeItem = new TreeItem<Record>(new Record());
+
+            for (Record record : records) {
+                TreeItem<Record> recordTreeItem = new TreeItem<Record>(record);
+                rootTreeItem.getChildren().add(recordTreeItem);
+                for (Record nextRecord : record.getNextRecords()) {
+                    recordTreeItem.getChildren().add(new TreeItem<Record>(nextRecord));
+                }
+            }
+
+            return rootTreeItem;
         }
 
 
@@ -286,15 +361,16 @@ public class MainController
             }
 
             Branch allBranch = branchesProcessor.getAllBranch();
+
             Branch branch = branchesProcessor.addBranchIfNotExist(record.getBranch());
 
-            allBranch.addRecord(record);
-            branch.addRecord(record);
+//            allBranch.addRecord(record);
+//            branch.addRecord(record);
+            recordsProcessor.addRecord(record);
 
             branchesListView.getSelectionModel().select(allBranch);
-            observableRecords.clear();
-            observableRecords.addAll(allBranch.getRecords());
-            recordsTableView.getSelectionModel().select(record);
+            recordsTreeTableView.setRoot(recordsTreeProcessor.getRootForRecords(allBranch.getRecords()));
+//            recordsTreeTableView.getSelectionModel().select();
 
             Notifications.create()
                     .owner(stage)

@@ -1,7 +1,7 @@
 package org.kesler.pvdsorter.domain;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
 
 public class Record {
 
@@ -10,6 +10,9 @@ public class Record {
     private Branch branch;
     private String regnum;
     private Date regdate;
+    private String prevRegnum;
+    private Record prevRecord;
+    private Set<Record> nextRecords = new HashSet<Record>();
 
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
@@ -28,6 +31,14 @@ public class Record {
     public String getRegdateString() {
         return simpleDateFormat.format(regdate);
     }
+
+    public String getPrevRegnum() { return prevRegnum; }
+    public void setPrevRegnum(String prevRegnum) { this.prevRegnum = prevRegnum; }
+
+    public Record getPrevRecord() { return prevRecord; }
+    public void setPrevRecord(Record prevRecord) { this.prevRecord = prevRecord; }
+
+    public Set<Record> getNextRecords() { return nextRecords; }
 
     @Override
     public String toString() {
