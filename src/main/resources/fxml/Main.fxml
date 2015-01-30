@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.text.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.control.cell.*?>
 <?import javafx.scene.*?>
@@ -7,9 +8,9 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<?import javafx.scene.control.cell.TreeItemPropertyValueFactory?>
 <?import org.kesler.pvdsorter.util.NumberedCellValueFactory?>
-<?import org.kesler.pvdsorter.util.NumberedCellFactory?>
+<?import org.kesler.pvdsorter.util.DateCellFactory?>
+
 <VBox fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.kesler.pvdsorter.gui.MainController">
    <children>
       <MenuBar>
@@ -53,34 +54,41 @@
                   <AnchorPane prefHeight="200.0" prefWidth="200.0">
                      <children>
                         <Label layoutX="8.0" layoutY="6.0" text="Дела" AnchorPane.leftAnchor="8.0" AnchorPane.topAnchor="6.0" />
-                        <TreeTableView
-                                fx:id="recordsTreeTableView" layoutY="32.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="29.0">
+                        <TreeTableView fx:id="recordsTreeTableView" layoutY="32.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="29.0">
                             <placeholder>
                                 <javafx.scene.text.Text text="Нет данных" />
                             </placeholder>
                           <columns>
-                            <TreeTableColumn maxWidth="50.0" minWidth="30.0" prefWidth="30.0" text="№" >
+                            <TreeTableColumn maxWidth="50.0" minWidth="30.0" prefWidth="30.0" text="№">
                                 <cellValueFactory>
                                     <NumberedCellValueFactory />
                                 </cellValueFactory>
-                                <cellFactory>
-                                    <NumberedCellFactory />
-                                </cellFactory>
-                            </TreeTableColumn>
+                             </TreeTableColumn>
                             <TreeTableColumn maxWidth="500.0" minWidth="50.0" prefWidth="120.0" text="Номер Росреестра">
                                 <cellValueFactory>
-                                    <TreeItemPropertyValueFactory property="regnum"/>
+                                    <TreeItemPropertyValueFactory property="regnum" />
                                 </cellValueFactory>
                             </TreeTableColumn>
-                              <TreeTableColumn maxWidth="200.0" minWidth="40.0" prefWidth="75.0" text="Дата" >
+                              <TreeTableColumn maxWidth="200.0" minWidth="40.0" prefWidth="75.0" text="Дата">
                                   <cellValueFactory>
-                                      <TreeItemPropertyValueFactory property="regdate"/>
+                                      <TreeItemPropertyValueFactory property="regdate" />
                                   </cellValueFactory>
+                                  <cellFactory>
+                                      <DateCellFactory />
+                                  </cellFactory>
                               </TreeTableColumn>
                           </columns>
                            <columnResizePolicy>
                               <TreeTableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                            </columnResizePolicy>
+                           <contextMenu>
+                              <ContextMenu>
+                                <items>
+                                  <MenuItem mnemonicParsing="false" text="Удалить" onAction="#handleDeletePopupMenuItemAction"/>
+                                    <MenuItem mnemonicParsing="false" text="Выбрать основное" onAction="#handleSelectMainPopupMenuItemAction" />
+                                </items>
+                              </ContextMenu>
+                           </contextMenu>
                         </TreeTableView>
                      </children>
                   </AnchorPane>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="204.0" prefWidth="548.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.kesler.pvdsorter.gui.RecordController">
+   <children>
+      <AnchorPane prefHeight="166.0" prefWidth="480.0" VBox.vgrow="ALWAYS">
+         <children>
+            <DatePicker fx:id="regDatePicker" layoutX="94.0" layoutY="57.0" AnchorPane.leftAnchor="94.0" AnchorPane.topAnchor="57.0" />
+            <TextField fx:id="regnumTextField" layoutX="94.0" layoutY="21.0" prefHeight="26.0" prefWidth="279.0" AnchorPane.leftAnchor="94.0" AnchorPane.rightAnchor="67.0" AnchorPane.topAnchor="21.0" />
+            <Label layoutX="25.0" layoutY="26.0" text="Номер" AnchorPane.leftAnchor="25.0" AnchorPane.topAnchor="26.0" />
+            <Label layoutX="26.0" layoutY="64.0" text="Дата" AnchorPane.leftAnchor="26.0" AnchorPane.topAnchor="64.0" />
+            <Label layoutX="27.0" layoutY="131.0" text="Осн дело" AnchorPane.leftAnchor="27.0" AnchorPane.topAnchor="131.0" />
+            <TextField fx:id="branchTextField" layoutX="94.0" layoutY="91.0" prefHeight="26.0" prefWidth="231.0" AnchorPane.leftAnchor="94.0" AnchorPane.rightAnchor="115.0" AnchorPane.topAnchor="91.0" />
+             <Button layoutX="339.0" layoutY="92.0" mnemonicParsing="false" onAction="#handleSelectBranchButtonAction" AnchorPane.rightAnchor="67.0" AnchorPane.topAnchor="92.0">
+                 <graphic>
+                     <ImageView>
+                         <image>
+                             <Image url="@../images/book_next.png" />
+                         </image>
+                     </ImageView>
+                 </graphic>
+             </Button>
+            <TextField fx:id="mainRegnumTextField" layoutX="94.0" layoutY="126.0" prefHeight="26.0" prefWidth="231.0" AnchorPane.leftAnchor="94.0" AnchorPane.rightAnchor="115.0" AnchorPane.topAnchor="126.0" />
+            <Button layoutX="340.0" layoutY="126.0" mnemonicParsing="false" onAction="#handleSerectMainRecordButtonAction" AnchorPane.rightAnchor="66.0" AnchorPane.topAnchor="126.0">
+               <graphic>
+                  <ImageView>
+                     <image>
+                        <Image url="@../images/book_next.png" />
+                     </image>
+                  </ImageView>
+               </graphic>
+            </Button>
+            <Label layoutX="25.0" layoutY="97.0" text="Филиал" />
+         </children>
+      </AnchorPane>
+      <ToolBar prefHeight="43.0" prefWidth="460.0">
+         <items>
+            <Button defaultButton="true" mnemonicParsing="false" onAction="#handleOkButtonAction" text="ОК" />
+            <Button mnemonicParsing="false" onAction="#handleCancelButtonAction" text="Отмена" />
+         </items>
+      </ToolBar>
+   </children>
+</VBox>

@@ -4,6 +4,7 @@ import javafx.fxml.FXMLLoader;
 
 import org.kesler.pvdsorter.gui.AboutController;
 import org.kesler.pvdsorter.gui.MainController;
+import org.kesler.pvdsorter.gui.RecordController;
 import org.kesler.pvdsorter.gui.RecordSelectController;
 import org.kesler.pvdsorter.service.RecordService;
 import org.kesler.pvdsorter.service.support.RecordRestServiceImpl;
@@ -73,6 +74,12 @@ public class PVDSorterAppFactory {
     public RecordSelectController recordSelectController() {
         RecordSelectController recordSelectController = loadController("/fxml/RecordSelect.fxml");
         return recordSelectController;
+    }
+
+    @Bean
+    public RecordController recordController() {
+        RecordController recordController = loadController("/fxml/Record.fxml");
+        return recordController;
     }
 
     @Bean

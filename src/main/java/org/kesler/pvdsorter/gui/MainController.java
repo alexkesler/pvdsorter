@@ -14,7 +14,9 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.controlsfx.control.Notifications;
-import org.controlsfx.dialog.Dialogs;
+import org.controlsfx.control.action.Action;
+import org.controlsfx.dialog.*;
+import org.controlsfx.dialog.Dialog;
 import org.kesler.pvdsorter.domain.Branch;
 import org.kesler.pvdsorter.domain.Record;
 import org.kesler.pvdsorter.export.RecordsExporter;
@@ -57,14 +59,16 @@ public class MainController
     private RecordSelectController recordSelectController;
 
     @Autowired
+    private RecordController recordController;
+
+    @Autowired
     private AboutController aboutController;
 
     private final ObservableList<Branch> observableBranches = FXCollections.observableArrayList();
-    private final ObservableList<Record> observableRecords = FXCollections.observableArrayList();
     private final ObservableList<Record> observableDdRecords = FXCollections.observableArrayList();
 
     private BranchesProcessor branchesProcessor = new BranchesProcessor(observableBranches);
-    private RecordsProcessor recordsProcessor = new RecordsProcessor(observableBranches,observableDdRecords);
+    private RecordsProcessor recordsProcessor = new RecordsProcessor(observableDdRecords);
     private RecordsTreeProcessor recordsTreeProcessor = new RecordsTreeProcessor();
 
     @Autowired
@@ -135,9 +139,18 @@ public class MainController
         aboutController.show(stage);
     }
 
+    @FXML
+    protected void handleDeletePopupMenuItemAction(ActionEvent ev) {
+
+    }
+
+    @FXML
+    protected void handleSelectMainPopupMenuItemAction(ActionEvent ev) {
+
+    }
+
     private void initLists() {
         observableBranches.clear();
-        observableRecords.clear();
         Branch allBranch = new Branch();
         allBranch.setName("Все");
         allBranch.setAll(true);
@@ -190,6 +203,29 @@ public class MainController
 
     }
 
+
+    private void selectMain(Record record) {
+        recordSelectController.showAndWait(stage,recordsProcessor.getAllRecords());
+        if (recordSelectController.getResult() == AbstractController.Result.OK) {
+            Record selectedRecord = recordSelectController.getSelectedRecord();
+            record.setPrevRecord(selectedRecord);
+            selectedRecord.getNextRecords().add(record);
+        }
+    }
+
+    private void deleteRecord(Record record) {
+        recordsProcessor.deleteRecord(record);
+    }
+
+    private void inputRecord(String regnum) {
+        Record record = new Record();
+        record.setRegnum(regnum);
+        recordController.showAndWait(stage, record);
+        if (recordController.getResult() == AbstractController.Result.OK) {
+
+        }
+    }
+
     ///// Вспомогательные классы
 
     class BranchesProcessor {
@@ -221,15 +257,23 @@ public class MainController
             return storedBranch;
         }
 
+        void clearEmptyBranches() {
+            Iterator<Branch> branchIterator = observableBranches.iterator();
+            while (branchIterator.hasNext()) {
+                Branch branch = branchIterator.next();
+                if (branch.getRecords().size() == 0 && !branch.isAll()) {
+                    branchIterator.remove();
+                }
+            }
+        }
+
 
     }
 
     class RecordsProcessor {
-        private final ObservableList<Branch> observableBranches;
         private final ObservableList<Record> observableDdRecords;
 
-        RecordsProcessor(ObservableList<Branch> observableBranches, ObservableList<Record> observableDdRecords) {
-            this.observableBranches = observableBranches;
+        RecordsProcessor(ObservableList<Record> observableDdRecords) {
             this.observableDdRecords = observableDdRecords;
         }
 
@@ -247,6 +291,15 @@ public class MainController
                     observableDdRecords.add(record);
             }
 
+        }
+
+        void deleteRecord(Record record) {
+
+            for (Branch branch : observableBranches) {
+                branch.getRecords().remove(record);
+            }
+
+            branchesProcessor.clearEmptyBranches();
         }
 
         private boolean findPrevRecord(Record record) {
@@ -273,6 +326,10 @@ public class MainController
             }
         }
 
+        private Collection<Record> getAllRecords() {
+            Branch allBranch = branchesProcessor.getAllBranch();
+            return allBranch.getRecords();
+        }
 
 
     }
@@ -334,13 +391,17 @@ public class MainController
             }
 
             if (records.size() == 0) {
-                Notifications.create()
+                Action response = Dialogs.create()
                         .owner(stage)
                         .title("Внимание")
-                        .text("Не найдено")
-                        .position(Pos.CENTER)
-                        .hideAfter(new Duration(1000))
-                        .showWarning();
+                        .message("Не найдено. Ввести вручную?")
+                        .actions(Dialog.ACTION_YES,Dialog.ACTION_NO)
+                        .showConfirm();
+
+                if (response == Dialog.ACTION_YES) {
+                    inputRecord(code);
+                }
+
                 searchTextField.requestFocus();
                 searchTextField.selectAll();
                 return;
@@ -370,6 +431,9 @@ public class MainController
 
             branchesListView.getSelectionModel().select(allBranch);
             recordsTreeTableView.setRoot(recordsTreeProcessor.getRootForRecords(allBranch.getRecords()));
+            for (TreeItem<Record> treeItem : recordsTreeTableView.getRoot().getChildren()) {
+                treeItem.setExpanded(true);
+            }
 //            recordsTreeTableView.getSelectionModel().select();
 
             Notifications.create()

@@ -9,9 +9,9 @@ import org.kesler.pvdsorter.domain.Record;
 /**
  * Created by alex on 25.01.15.
  */
-public class NumberedCellValueFactory implements Callback<TreeTableColumn.CellDataFeatures<Record,Record>,ObservableValue<Record>> {
+public class NumberedCellValueFactory implements Callback<TreeTableColumn.CellDataFeatures<Record,String>,ObservableValue<String>> {
     @Override
-    public ObservableValue<Record> call(TreeTableColumn.CellDataFeatures<Record, Record> param) {
-        return new ReadOnlyObjectWrapper<Record>(param.getValue().getValue());
+    public ObservableValue<String> call(TreeTableColumn.CellDataFeatures<Record, String> param) {
+        return new ReadOnlyObjectWrapper<String>(param.getValue().getParent().getChildren().indexOf(param.getValue())+1+"");
     }
 }
