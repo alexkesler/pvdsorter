@@ -11,6 +11,7 @@
 <?import org.kesler.pvdsorter.util.NumberedCellValueFactory?>
 <?import org.kesler.pvdsorter.util.DateCellFactory?>
 
+<?import org.kesler.pvdsorter.util.RegnumCellValueFactory?>
 <VBox fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.kesler.pvdsorter.gui.MainController">
    <children>
       <MenuBar>
@@ -66,7 +67,7 @@
                              </TreeTableColumn>
                             <TreeTableColumn maxWidth="500.0" minWidth="50.0" prefWidth="120.0" text="Номер Росреестра">
                                 <cellValueFactory>
-                                    <TreeItemPropertyValueFactory property="regnum" />
+                                    <RegnumCellValueFactory />
                                 </cellValueFactory>
                             </TreeTableColumn>
                               <TreeTableColumn maxWidth="200.0" minWidth="40.0" prefWidth="75.0" text="Дата">

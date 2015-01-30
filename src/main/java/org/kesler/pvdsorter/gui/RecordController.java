@@ -36,7 +36,7 @@ public class RecordController extends AbstractController {
     public void showAndWait(Window owner, Record record) {
         this.record = record;
         branch = record.getBranch();
-        mainRecord = record.getPrevRecord();
+        mainRecord = record.getMainRecord();
         super.showAndWait(owner, "Выберите запись");
     }
 
@@ -48,7 +48,7 @@ public class RecordController extends AbstractController {
     protected void updateContent() {
         regnumTextField.setText(record.getRegnum());
         regDatePicker.setValue(FXUtils.dateToLocalDate(record.getRegdate()));
-        branchTextField.setText(branch==null?"":branch.getName());
+        branchTextField.setText(branch == null ? "" : branch.getName());
         mainRegnumTextField.setText(mainRecord==null?"":mainRecord.getRegnum());
     }
 
@@ -57,8 +57,8 @@ public class RecordController extends AbstractController {
         record.setRegnum(regnumTextField.getText());
         record.setRegdate(FXUtils.localDateToDate(regDatePicker.getValue()));
         record.setBranch(branch);
-        record.setPrevRecord(mainRecord);
-        record.setPrevRegnum(mainRecord==null?"":mainRecord.getRegnum());
+        record.setMainRecord(mainRecord);
+        record.setMainRegnum(mainRecord == null ? "" : mainRecord.getRegnum());
     }
 
     @FXML

@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
@@ -83,7 +84,8 @@ public class MainController
         branchesListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Branch>() {
             @Override
             public void changed(ObservableValue<? extends Branch> observable, Branch oldValue, Branch newValue) {
-                recordsTreeTableView.setRoot(recordsTreeProcessor.getRootForRecords(newValue.getRecords()));
+                if (newValue!=null)
+                    updateRecordsTreeView(newValue);
             }
         });
     }
@@ -141,12 +143,16 @@ public class MainController
 
     @FXML
     protected void handleDeletePopupMenuItemAction(ActionEvent ev) {
-
+        Record selectedRecord = recordsTreeTableView.getSelectionModel().getSelectedItem().getValue();
+        if (selectedRecord!=null)
+            deleteRecord(selectedRecord);
     }
 
     @FXML
     protected void handleSelectMainPopupMenuItemAction(ActionEvent ev) {
-
+        Record selectedRecord = recordsTreeTableView.getSelectionModel().getSelectedItem().getValue();
+        if (selectedRecord!=null)
+            selectMain(selectedRecord);
     }
 
     private void initLists() {
@@ -155,6 +161,7 @@ public class MainController
         allBranch.setName("Все");
         allBranch.setAll(true);
         observableBranches.add(allBranch);
+        updateRecordsTreeView(allBranch);
     }
 
     private void findRecord(String code) {
@@ -203,18 +210,39 @@ public class MainController
 
     }
 
+    private void updateRecordsTreeView(Branch branch) {
+        if (branch == null) return;
+        recordsTreeTableView.setRoot(recordsTreeProcessor.getRootForRecords(branch.getRecords()));
+        for (TreeItem<Record> treeItem:recordsTreeTableView.getRoot().getChildren()) {
+            treeItem.setExpanded(true);
+        }
+        branchesListView.getSelectionModel().select(branch);
+    }
+
 
     private void selectMain(Record record) {
-        recordSelectController.showAndWait(stage,recordsProcessor.getAllRecords());
+        Collection<Record> records = new ArrayList<Record>(recordsProcessor.getAllRecords());
+        records.remove(record);  /// убираем это дело из списка
+        recordSelectController.showAndWait(stage,records);  // открываем контроллер выбора осн дела
         if (recordSelectController.getResult() == AbstractController.Result.OK) {
             Record selectedRecord = recordSelectController.getSelectedRecord();
-            record.setPrevRecord(selectedRecord);
-            selectedRecord.getNextRecords().add(record);
+            record.setMainRecord(selectedRecord);
+            selectedRecord.getSubRecords().add(record);
+
+            recordsProcessor.deleteMainRecord(record);
+
+            updateRecordsTreeView(selectedRecord.getBranch());
         }
     }
 
     private void deleteRecord(Record record) {
         recordsProcessor.deleteRecord(record);
+        if (observableBranches.contains(record.getBranch())) {
+            updateRecordsTreeView(record.getBranch());
+        } else {
+            updateRecordsTreeView(branchesProcessor.getAllBranch());
+        }
+
     }
 
     private void inputRecord(String regnum) {
@@ -222,7 +250,8 @@ public class MainController
         record.setRegnum(regnum);
         recordController.showAndWait(stage, record);
         if (recordController.getResult() == AbstractController.Result.OK) {
-
+            branchesProcessor.getAllBranch().addRecord(record);
+            updateRecordsTreeView(record.getBranch());
         }
     }
 
@@ -279,21 +308,26 @@ public class MainController
 
         void addRecord(Record record) {
 
-            if (record.getPrevRegnum() == null || record.getPrevRegnum().isEmpty()) {
+            if (record.getMainRegnum() == null || record.getMainRegnum().isEmpty()) {
                 Branch branch = branchesProcessor.addBranchIfNotExist(record.getBranch());
                 Branch allBranch = branchesProcessor.getAllBranch();
                 branch.addRecord(record);
                 allBranch.addRecord(record);
 
-                findNextRecords(record);
+                findSubRecords(record);
             } else {
-                if (!findPrevRecord(record))
+                if (!findMainRecord(record))
                     observableDdRecords.add(record);
             }
 
         }
 
         void deleteRecord(Record record) {
+
+            if (record.getMainRecord() != null) {
+                record.getMainRecord().getSubRecords().remove(record);
+                return;
+            }
 
             for (Branch branch : observableBranches) {
                 branch.getRecords().remove(record);
@@ -302,25 +336,34 @@ public class MainController
             branchesProcessor.clearEmptyBranches();
         }
 
-        private boolean findPrevRecord(Record record) {
+        void deleteMainRecord(Record record) {
+
+            for (Branch branch : observableBranches) {
+                branch.getRecords().remove(record);
+            }
+
+            branchesProcessor.clearEmptyBranches();
+        }
+
+        private boolean findMainRecord(Record record) {
             Branch allBranch = branchesProcessor.getAllBranch();
             for (Record r : allBranch.getRecords()) {
-                if (r.getRegnum().equals(record.getPrevRegnum())) {
-                    r.getNextRecords().add(record);
-                    record.setPrevRecord(r);
+                if (r.getRegnum().equals(record.getMainRegnum())) {
+                    r.getSubRecords().add(record);
+                    record.setMainRecord(r);
                     return true;
                 }
             }
             return false;
         }
 
-        private void findNextRecords(Record record) {
+        private void findSubRecords(Record record) {
             Iterator<Record> recordIterator = observableDdRecords.iterator();
             while (recordIterator.hasNext()) {
                 Record r = recordIterator.next();
-                if (r.getPrevRegnum().equals(record.getRegnum())) {
-                    r.setPrevRecord(record);
-                    record.getNextRecords().add(r);
+                if (r.getMainRegnum().equals(record.getRegnum())) {
+                    r.setMainRecord(record);
+                    record.getSubRecords().add(r);
                     recordIterator.remove();
                 }
             }
@@ -342,8 +385,8 @@ public class MainController
             for (Record record : records) {
                 TreeItem<Record> recordTreeItem = new TreeItem<Record>(record);
                 rootTreeItem.getChildren().add(recordTreeItem);
-                for (Record nextRecord : record.getNextRecords()) {
-                    recordTreeItem.getChildren().add(new TreeItem<Record>(nextRecord));
+                for (Record subRecord : record.getSubRecords()) {
+                    recordTreeItem.getChildren().add(new TreeItem<Record>(subRecord));
                 }
             }
 

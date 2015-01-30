@@ -10,9 +10,9 @@ public class Record {
     private Branch branch;
     private String regnum;
     private Date regdate;
-    private String prevRegnum;
-    private Record prevRecord;
-    private Set<Record> nextRecords = new HashSet<Record>();
+    private String mainRegnum;
+    private Record mainRecord;
+    private Set<Record> subRecords = new HashSet<Record>();
 
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
@@ -32,13 +32,13 @@ public class Record {
         return simpleDateFormat.format(regdate);
     }
 
-    public String getPrevRegnum() { return prevRegnum; }
-    public void setPrevRegnum(String prevRegnum) { this.prevRegnum = prevRegnum; }
+    public String getMainRegnum() { return mainRegnum; }
+    public void setMainRegnum(String mainRegnum) { this.mainRegnum = mainRegnum; }
 
-    public Record getPrevRecord() { return prevRecord; }
-    public void setPrevRecord(Record prevRecord) { this.prevRecord = prevRecord; }
+    public Record getMainRecord() { return mainRecord; }
+    public void setMainRecord(Record mainRecord) { this.mainRecord = mainRecord; }
 
-    public Set<Record> getNextRecords() { return nextRecords; }
+    public Set<Record> getSubRecords() { return subRecords; }
 
     @Override
     public String toString() {
