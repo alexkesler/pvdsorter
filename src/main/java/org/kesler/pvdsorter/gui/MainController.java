@@ -21,6 +21,7 @@ import org.controlsfx.dialog.Dialog;
 import org.kesler.pvdsorter.domain.Branch;
 import org.kesler.pvdsorter.domain.Record;
 import org.kesler.pvdsorter.export.RecordsExporter;
+import org.kesler.pvdsorter.repository.BranchRepository;
 import org.kesler.pvdsorter.service.RecordService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,21 +69,24 @@ public class MainController  implements Initializable
     @Autowired
     private AboutController aboutController;
 
-    private final ObservableList<Branch> observableBranches = FXCollections.observableArrayList();
+    private ObservableList<Branch> observableBranches;
     private final ObservableList<Record> observableDdRecords = FXCollections.observableArrayList();
 
-    private BranchesProcessor branchesProcessor = new BranchesProcessor(observableBranches);
+
     private RecordsProcessor recordsProcessor = new RecordsProcessor(observableDdRecords);
     private RecordsTreeProcessor recordsTreeProcessor = new RecordsTreeProcessor();
 
     @Autowired
     private RecordService recordService;
 
+    @Autowired
+    private BranchRepository branchRepository;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        observableBranches = branchRepository.getAllBrahches();
         branchesListView.setItems(observableBranches);
         recordsTreeTableView.setShowRoot(false);
-        branchesProcessor.initLists();
 
         branchesListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Branch>() {
             @Override
@@ -130,7 +134,7 @@ public class MainController  implements Initializable
     @FXML
     protected void handleClearMenuItemAction(ActionEvent event) {
         log.info("Clear lists");
-        branchesProcessor.initLists();
+        branchRepository.init();
     }
 
     @FXML
@@ -235,7 +239,7 @@ public class MainController  implements Initializable
         if (observableBranches.contains(record.getBranch())) {
             updateRecordsTreeView(record.getBranch());
         } else {
-            updateRecordsTreeView(branchesProcessor.getAllBranch());
+            updateRecordsTreeView(branchRepository.getCommonBranch());
         }
 
     }
@@ -245,64 +249,64 @@ public class MainController  implements Initializable
         record.setRegnum(regnum);
         recordController.showAndWait(stage, record);
         if (recordController.getResult() == AbstractController.Result.OK) {
-            branchesProcessor.getAllBranch().addRecord(record);
+            branchRepository.getCommonBranch().addRecord(record);
             updateRecordsTreeView(record.getBranch());
         }
     }
 
     ///// Вспомогательные классы
 
-    class BranchesProcessor {
-        private final ObservableList<Branch> obersvableBranches;
-
-        BranchesProcessor(ObservableList<Branch> observableBranches) {
-            this.obersvableBranches = observableBranches;
-        }
-
-        void initLists() {
-            observableBranches.clear();
-            Branch allBranch = new Branch();
-            allBranch.setName("Все");
-            allBranch.setCommon(true);
-            observableBranches.add(allBranch);
-            updateRecordsTreeView(allBranch);
-        }
-
-
-        Branch getAllBranch() {
-            Branch allBranch = null;
-            for (Branch branch : obersvableBranches) {
-                if (branch.isCommon()) {
-                    allBranch=branch;
-                }
-            }
-            return allBranch;
-        }
-
-        Branch addBranchIfNotExist(Branch branch) {
-            int branchIndex = observableBranches.indexOf(branch);
-            Branch storedBranch;
-            if (branchIndex>0) {
-                storedBranch = observableBranches.get(branchIndex);
-            } else {
-                storedBranch = branch;
-                observableBranches.addAll(branch);
-            }
-            return storedBranch;
-        }
-
-        void clearEmptyBranches() {
-            Iterator<Branch> branchIterator = observableBranches.iterator();
-            while (branchIterator.hasNext()) {
-                Branch branch = branchIterator.next();
-                if (branch.getRecords().size() == 0 && !branch.isCommon()) {
-                    branchIterator.remove();
-                }
-            }
-        }
-
-
-    }
+//    class BranchesProcessor {
+//        private final ObservableList<Branch> obersvableBranches;
+//
+//        BranchesProcessor(ObservableList<Branch> observableBranches) {
+//            this.obersvableBranches = observableBranches;
+//        }
+//
+//        void initLists() {
+//            observableBranches.clear();
+//            Branch allBranch = new Branch();
+//            allBranch.setName("Все");
+//            allBranch.setCommon(true);
+//            observableBranches.add(allBranch);
+//            updateRecordsTreeView(allBranch);
+//        }
+//
+//
+//        Branch getAllBranch() {
+//            Branch allBranch = null;
+//            for (Branch branch : obersvableBranches) {
+//                if (branch.isCommon()) {
+//                    allBranch=branch;
+//                }
+//            }
+//            return allBranch;
+//        }
+//
+//        Branch addBranchIfNotExist(Branch branch) {
+//            int branchIndex = observableBranches.indexOf(branch);
+//            Branch storedBranch;
+//            if (branchIndex>0) {
+//                storedBranch = observableBranches.get(branchIndex);
+//            } else {
+//                storedBranch = branch;
+//                observableBranches.addAll(branch);
+//            }
+//            return storedBranch;
+//        }
+//
+//        void clearEmptyBranches() {
+//            Iterator<Branch> branchIterator = observableBranches.iterator();
+//            while (branchIterator.hasNext()) {
+//                Branch branch = branchIterator.next();
+//                if (branch.getRecords().size() == 0 && !branch.isCommon()) {
+//                    branchIterator.remove();
+//                }
+//            }
+//        }
+//
+//
+//    }
 
     class RecordsProcessor {
         private final ObservableList<Record> observableDdRecords;
@@ -314,10 +318,11 @@ public class MainController  implements Initializable
         void addRecord(Record record) {
 
             if (record.getMainRegnum() == null || record.getMainRegnum().isEmpty()) {
-                Branch branch = branchesProcessor.addBranchIfNotExist(record.getBranch());
-                Branch allBranch = branchesProcessor.getAllBranch();
+                Branch branch = record.getBranch();
+                branchRepository.addBranch(record.getBranch());
+                Branch commonBranch = branchRepository.getCommonBranch();
                 branch.addRecord(record);
-                allBranch.addRecord(record);
+                commonBranch.addRecord(record);
 
                 findSubRecords(record);
             } else {
@@ -338,7 +343,7 @@ public class MainController  implements Initializable
                 branch.getRecords().remove(record);
             }
 
-            branchesProcessor.clearEmptyBranches();
+            branchRepository.clearEmptyBranches();
         }
 
         void deleteMainRecord(Record record) {
@@ -347,12 +352,12 @@ public class MainController  implements Initializable
                 branch.getRecords().remove(record);
             }
 
-            branchesProcessor.clearEmptyBranches();
+            branchRepository.clearEmptyBranches();
         }
 
         private boolean findMainRecord(Record record) {
-            Branch allBranch = branchesProcessor.getAllBranch();
-            for (Record r : allBranch.getRecords()) {
+            Branch commonBranch = branchRepository.getCommonBranch();
+            for (Record r : commonBranch.getRecords()) {
                 if (r.getRegnum().equals(record.getMainRegnum())) {
                     r.getSubRecords().add(record);
                     record.setMainRecord(r);
@@ -375,8 +380,8 @@ public class MainController  implements Initializable
         }
 
         private Collection<Record> getAllRecords() {
-            Branch allBranch = branchesProcessor.getAllBranch();
-            return allBranch.getRecords();
+            Branch commonBranch = branchRepository.getCommonBranch();
+            return commonBranch.getRecords();
         }
 
 
@@ -469,16 +474,17 @@ public class MainController  implements Initializable
                 record = records.iterator().next();
             }
 
-            Branch allBranch = branchesProcessor.getAllBranch();
+            Branch commonBranch = branchRepository.getCommonBranch();
 
-            Branch branch = branchesProcessor.addBranchIfNotExist(record.getBranch());
+            Branch branch = record.getBranch();
+            branchRepository.addBranch(branch);
 
-//            allBranch.addRecord(record);
+//            commonBranch.addRecord(record);
 //            branch.addRecord(record);
             recordsProcessor.addRecord(record);
 
-            branchesListView.getSelectionModel().select(allBranch);
-            recordsTreeTableView.setRoot(recordsTreeProcessor.getRootForRecords(allBranch.getRecords()));
+            branchesListView.getSelectionModel().select(commonBranch);
+            recordsTreeTableView.setRoot(recordsTreeProcessor.getRootForRecords(commonBranch.getRecords()));
             for (TreeItem<Record> treeItem : recordsTreeTableView.getRoot().getChildren()) {
                 treeItem.setExpanded(true);
             }

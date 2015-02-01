@@ -1,21 +1,20 @@
 package org.kesler.pvdsorter.repository.support;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.kesler.pvdsorter.domain.Branch;
 import org.kesler.pvdsorter.repository.BranchRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @Repository
 public class BranchRepositorySimpleImpl implements BranchRepository {
-    private List<Branch> branches;
+    private final ObservableList<Branch> branches = FXCollections.observableArrayList();
 
     @Override
     public void init() {
-        branches = new ArrayList<Branch>();
+        branches.clear();
         Branch commonBranch = new Branch();
         commonBranch.setName("Все");
         commonBranch.setCommon(true);
@@ -23,7 +22,7 @@ public class BranchRepositorySimpleImpl implements BranchRepository {
     }
 
     @Override
-    public Collection<Branch> getAllBrahches() {
+    public ObservableList<Branch> getAllBrahches() {
         return branches;
     }
 
