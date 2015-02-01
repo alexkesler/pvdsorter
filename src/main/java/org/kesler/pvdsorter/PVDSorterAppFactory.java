@@ -66,29 +66,7 @@ public class PVDSorterAppFactory {
         return restTemplate;
     }
 
-    @Bean
-    public MainController mainController() {
-        MainController mainController = loadController("/fxml/Main.fxml");
-        return mainController;
-    }
 
-    @Bean
-    public RecordSelectController recordSelectController() {
-        RecordSelectController recordSelectController = loadController("/fxml/RecordSelect.fxml");
-        return recordSelectController;
-    }
-
-    @Bean
-    public RecordController recordController() {
-        RecordController recordController = loadController("/fxml/Record.fxml");
-        return recordController;
-    }
-
-    @Bean
-    public AboutController aboutController() {
-        AboutController aboutController = loadController("/fxml/About.fxml");
-        return aboutController;
-    }
 
     /**
      * Creates a WelcomeRestService which provides a nice wrapper around the REST calls the server, encapsulating all
@@ -112,6 +90,37 @@ public class PVDSorterAppFactory {
     @Bean
     public BranchRepository branchRepository() {
         return new BranchRepositoryImpl();
+    }
+
+
+    /**
+     * Controllers
+     *
+     */
+
+
+    @Bean
+    public MainController mainController() {
+        MainController mainController = loadController("/fxml/Main.fxml");
+        return mainController;
+    }
+
+    @Bean
+    public RecordSelectController recordSelectController() {
+        RecordSelectController recordSelectController = loadController("/fxml/RecordSelect.fxml");
+        return recordSelectController;
+    }
+
+    @Bean
+    public RecordController recordController() {
+        RecordController recordController = loadController("/fxml/Record.fxml");
+        return recordController;
+    }
+
+    @Bean
+    public AboutController aboutController() {
+        AboutController aboutController = loadController("/fxml/About.fxml");
+        return aboutController;
     }
     /**
      * Convenience method for loading Controllers from FXML. FXML can be a little impure in its inter-dependencies

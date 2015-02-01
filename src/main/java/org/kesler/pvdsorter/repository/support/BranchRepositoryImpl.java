@@ -1,7 +1,5 @@
 package org.kesler.pvdsorter.repository.support;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.kesler.pvdsorter.domain.Branch;
 import org.kesler.pvdsorter.repository.BranchRepository;
 import org.springframework.stereotype.Repository;
@@ -10,7 +8,12 @@ import java.util.*;
 
 @Repository
 public class BranchRepositoryImpl implements BranchRepository {
-    private final ObservableList<Branch> branches = FXCollections.observableArrayList();
+    private final Collection<Branch> branches;
+
+    public BranchRepositoryImpl() {
+        branches = new ArrayList<Branch>();
+        init();
+    }
 
     @Override
     public void init() {
@@ -22,7 +25,7 @@ public class BranchRepositoryImpl implements BranchRepository {
     }
 
     @Override
-    public ObservableList<Branch> getAllBrahches() {
+    public Collection<Branch> getAllBrahches() {
         return branches;
     }
 

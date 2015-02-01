@@ -69,7 +69,7 @@ public class MainController  implements Initializable
     @Autowired
     private AboutController aboutController;
 
-    private ObservableList<Branch> observableBranches;
+    private ObservableList<Branch> observableBranches = FXCollections.observableArrayList();
     private final ObservableList<Record> observableDdRecords = FXCollections.observableArrayList();
 
 
@@ -84,7 +84,6 @@ public class MainController  implements Initializable
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        observableBranches = branchRepository.getAllBrahches();
         branchesListView.setItems(observableBranches);
         recordsTreeTableView.setShowRoot(false);
 
@@ -104,6 +103,11 @@ public class MainController  implements Initializable
 
     public void setStage(Stage stage) {
         this.stage = stage;
+    }
+
+    public void show() {
+        updateBranchesList();
+        stage.show();
     }
 
     @FXML
@@ -209,6 +213,11 @@ public class MainController  implements Initializable
 
     }
 
+    private void updateBranchesList() {
+        observableBranches.clear();
+        observableBranches.addAll(branchRepository.getAllBrahches());
+    }
+
     private void updateRecordsTreeView(Branch branch) {
         if (branch == null) return;
         recordsTreeTableView.setRoot(recordsTreeProcessor.getRootForRecords(branch.getRecords()));
@@ -249,6 +258,8 @@ public class MainController  implements Initializable
         record.setRegnum(regnum);
         recordController.showAndWait(stage, record);
         if (recordController.getResult() == AbstractController.Result.OK) {
+            branchRepository.addBranch(record.getBranch());
+            updateBranchesList();
             branchRepository.getCommonBranch().addRecord(record);
             updateRecordsTreeView(record.getBranch());
         }
@@ -256,57 +267,6 @@ public class MainController  implements Initializable
 
     ///// Вспомогательные классы
 
-//    class BranchesProcessor {
-//        private final ObservableList<Branch> obersvableBranches;
-//
-//        BranchesProcessor(ObservableList<Branch> observableBranches) {
-//            this.obersvableBranches = observableBranches;
-//        }
-//
-//        void initLists() {
-//            observableBranches.clear();
-//            Branch allBranch = new Branch();
-//            allBranch.setName("Все");
-//            allBranch.setCommon(true);
-//            observableBranches.add(allBranch);
-//            updateRecordsTreeView(allBranch);
-//        }
-//
-//
-//        Branch getAllBranch() {
-//            Branch allBranch = null;
-//            for (Branch branch : obersvableBranches) {
-//                if (branch.isCommon()) {
-//                    allBranch=branch;
-//                }
-//            }
-//            return allBranch;
-//        }
-//
-//        Branch addBranchIfNotExist(Branch branch) {
-//            int branchIndex = observableBranches.indexOf(branch);
-//            Branch storedBranch;
-//            if (branchIndex>0) {
-//                storedBranch = observableBranches.get(branchIndex);
-//            } else {
-//                storedBranch = branch;
-//                observableBranches.addAll(branch);
-//            }
-//            return storedBranch;
-//        }
-//
-//        void clearEmptyBranches() {
-//            Iterator<Branch> branchIterator = observableBranches.iterator();
-//            while (branchIterator.hasNext()) {
-//                Branch branch = branchIterator.next();
-//                if (branch.getRecords().size() == 0 && !branch.isCommon()) {
-//                    branchIterator.remove();
-//                }
-//            }
-//        }
-//
-//
-//    }
 
     class RecordsProcessor {
         private final ObservableList<Record> observableDdRecords;
@@ -320,6 +280,7 @@ public class MainController  implements Initializable
             if (record.getMainRegnum() == null || record.getMainRegnum().isEmpty()) {
                 Branch branch = record.getBranch();
                 branchRepository.addBranch(record.getBranch());
+                updateBranchesList();
                 Branch commonBranch = branchRepository.getCommonBranch();
                 branch.addRecord(record);
                 commonBranch.addRecord(record);
@@ -344,6 +305,7 @@ public class MainController  implements Initializable
             }
 
             branchRepository.clearEmptyBranches();
+            updateBranchesList();
         }
 
         void deleteMainRecord(Record record) {
@@ -353,6 +315,7 @@ public class MainController  implements Initializable
             }
 
             branchRepository.clearEmptyBranches();
+            updateBranchesList();
         }
 
         private boolean findMainRecord(Record record) {
@@ -478,6 +441,7 @@ public class MainController  implements Initializable
 
             Branch branch = record.getBranch();
             branchRepository.addBranch(branch);
+            updateBranchesList();
 
 //            commonBranch.addRecord(record);
 //            branch.addRecord(record);

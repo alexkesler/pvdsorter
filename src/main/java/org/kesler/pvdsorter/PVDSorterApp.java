@@ -31,6 +31,6 @@ public class PVDSorterApp extends Application {
         stage.setScene(scene);
         stage.setTitle("Сортировка дел ПК ПВД");
         stage.getIcons().add(new Image(PVDSorterApp.class.getResourceAsStream("/images/Bibble.png")));
-        stage.show();
+        mainController.show();
     }
 }
