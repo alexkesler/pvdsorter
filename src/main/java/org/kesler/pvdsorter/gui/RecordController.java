@@ -7,8 +7,11 @@ import javafx.scene.control.TextField;
 import javafx.stage.Window;
 import org.kesler.pvdsorter.domain.Branch;
 import org.kesler.pvdsorter.domain.Record;
+import org.kesler.pvdsorter.repository.BranchRepository;
 import org.kesler.pvdsorter.util.FXUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Collection;
 
 
 public class RecordController extends AbstractController {
@@ -24,6 +27,9 @@ public class RecordController extends AbstractController {
 
     @Autowired
     private RecordSelectController recordSelectController;
+
+    @Autowired
+    private BranchRepository branchRepository;
 
 
     private Record record;
@@ -62,6 +68,7 @@ public class RecordController extends AbstractController {
         record.setRegdate(FXUtils.localDateToDate(regDatePicker.getValue()));
         record.setBranch(branch);
         record.setMainRecord(mainRecord);
+        mainRecord.getSubRecords().add(record);
         record.setMainRegnum(mainRecord == null ? "" : mainRecord.getRegnum());
     }
 
@@ -72,6 +79,12 @@ public class RecordController extends AbstractController {
 
     @FXML
     protected void handleSelectMainRecordButtonAction(ActionEvent event) {
+        Collection<Record> allRecords = branchRepository.getCommonBranch().getRecords();
+        recordSelectController.showAndWait(stage,allRecords);
+        if (recordSelectController.getResult() == Result.OK) {
+            mainRecord = recordSelectController.getSelectedRecord();
+            mainRegnumTextField.setText(mainRecord.getRegnum());
 
+        }
     }
 }

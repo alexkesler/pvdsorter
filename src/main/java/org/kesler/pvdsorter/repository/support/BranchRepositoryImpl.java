@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.*;
 
 @Repository
-public class BranchRepositorySimpleImpl implements BranchRepository {
+public class BranchRepositoryImpl implements BranchRepository {
     private final ObservableList<Branch> branches = FXCollections.observableArrayList();
 
     @Override
