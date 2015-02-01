@@ -6,6 +6,8 @@ import org.kesler.pvdsorter.gui.AboutController;
 import org.kesler.pvdsorter.gui.MainController;
 import org.kesler.pvdsorter.gui.RecordController;
 import org.kesler.pvdsorter.gui.RecordSelectController;
+import org.kesler.pvdsorter.repository.BranchRepository;
+import org.kesler.pvdsorter.repository.support.BranchRepositorySimpleImpl;
 import org.kesler.pvdsorter.service.RecordService;
 import org.kesler.pvdsorter.service.support.RecordRestServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,6 +108,11 @@ public class PVDSorterAppFactory {
     }
 
 
+
+    @Bean
+    public BranchRepository branchRepository() {
+        return new BranchRepositorySimpleImpl();
+    }
     /**
      * Convenience method for loading Controllers from FXML. FXML can be a little impure in its inter-dependencies
      * between client and server (it is quite biased to things being view driven and tightly couples the view into its

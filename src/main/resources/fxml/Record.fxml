@@ -25,7 +25,7 @@
                  </graphic>
              </Button>
             <TextField fx:id="mainRegnumTextField" layoutX="94.0" layoutY="126.0" prefHeight="26.0" prefWidth="231.0" AnchorPane.leftAnchor="94.0" AnchorPane.rightAnchor="115.0" AnchorPane.topAnchor="126.0" />
-            <Button layoutX="340.0" layoutY="126.0" mnemonicParsing="false" onAction="#handleSerectMainRecordButtonAction" AnchorPane.rightAnchor="66.0" AnchorPane.topAnchor="126.0">
+            <Button layoutX="340.0" layoutY="126.0" mnemonicParsing="false" onAction="#handleSelectMainRecordButtonAction" AnchorPane.rightAnchor="66.0" AnchorPane.topAnchor="126.0">
                <graphic>
                   <ImageView>
                      <image>

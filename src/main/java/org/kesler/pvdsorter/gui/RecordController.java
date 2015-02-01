@@ -8,6 +8,7 @@ import javafx.stage.Window;
 import org.kesler.pvdsorter.domain.Branch;
 import org.kesler.pvdsorter.domain.Record;
 import org.kesler.pvdsorter.util.FXUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 public class RecordController extends AbstractController {
@@ -20,6 +21,9 @@ public class RecordController extends AbstractController {
     protected TextField branchTextField;
     @FXML
     protected TextField mainRegnumTextField;
+
+    @Autowired
+    private RecordSelectController recordSelectController;
 
 
     private Record record;
@@ -67,7 +71,7 @@ public class RecordController extends AbstractController {
     }
 
     @FXML
-    protected void handleSerectMainRecordButtonAction(ActionEvent event) {
+    protected void handleSelectMainRecordButtonAction(ActionEvent event) {
 
     }
 }

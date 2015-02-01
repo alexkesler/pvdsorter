@@ -8,6 +8,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
@@ -26,13 +27,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
 
 @Component
-public class MainController
+public class MainController  implements Initializable
 {
     private static final Logger log = LoggerFactory.getLogger(MainController.class);
 
@@ -75,11 +78,11 @@ public class MainController
     @Autowired
     private RecordService recordService;
 
-    @FXML
-    protected void initialize() {
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
         branchesListView.setItems(observableBranches);
         recordsTreeTableView.setShowRoot(false);
-        initLists();
+        branchesProcessor.initLists();
 
         branchesListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Branch>() {
             @Override
@@ -109,7 +112,7 @@ public class MainController
     @FXML
     protected void handlePrintButtonAction(ActionEvent ev) {
         Branch selectedBranch = branchesListView.getSelectionModel().getSelectedItem();
-        if (selectedBranch == null || selectedBranch.isAll()) {
+        if (selectedBranch == null || selectedBranch.isCommon()) {
             Notifications.create()
                     .owner(stage)
                     .title("Внимание")
@@ -127,7 +130,7 @@ public class MainController
     @FXML
     protected void handleClearMenuItemAction(ActionEvent event) {
         log.info("Clear lists");
-        initLists();
+        branchesProcessor.initLists();
     }
 
     @FXML
@@ -155,14 +158,6 @@ public class MainController
             selectMain(selectedRecord);
     }
 
-    private void initLists() {
-        observableBranches.clear();
-        Branch allBranch = new Branch();
-        allBranch.setName("Все");
-        allBranch.setAll(true);
-        observableBranches.add(allBranch);
-        updateRecordsTreeView(allBranch);
-    }
 
     private void findRecord(String code) {
         RecordsReader recordsReader = new RecordsReader(code);
@@ -264,10 +259,20 @@ public class MainController
             this.obersvableBranches = observableBranches;
         }
 
+        void initLists() {
+            observableBranches.clear();
+            Branch allBranch = new Branch();
+            allBranch.setName("Все");
+            allBranch.setCommon(true);
+            observableBranches.add(allBranch);
+            updateRecordsTreeView(allBranch);
+        }
+
+
         Branch getAllBranch() {
             Branch allBranch = null;
             for (Branch branch : obersvableBranches) {
-                if (branch.isAll()) {
+                if (branch.isCommon()) {
                     allBranch=branch;
                 }
             }
@@ -290,7 +295,7 @@ public class MainController
             Iterator<Branch> branchIterator = observableBranches.iterator();
             while (branchIterator.hasNext()) {
                 Branch branch = branchIterator.next();
-                if (branch.getRecords().size() == 0 && !branch.isAll()) {
+                if (branch.getRecords().size() == 0 && !branch.isCommon()) {
                     branchIterator.remove();
                 }
             }
