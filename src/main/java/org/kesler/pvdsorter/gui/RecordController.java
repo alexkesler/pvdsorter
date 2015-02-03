@@ -29,6 +29,9 @@ public class RecordController extends AbstractController {
     private RecordSelectController recordSelectController;
 
     @Autowired
+    private BranchSelectController branchSelectController;
+
+    @Autowired
     private BranchRepository branchRepository;
 
 
@@ -67,14 +70,24 @@ public class RecordController extends AbstractController {
         record.setRegnum(regnumTextField.getText());
         record.setRegdate(FXUtils.localDateToDate(regDatePicker.getValue()));
         record.setBranch(branch);
+        if (branch != null) {
+            branch.addRecord(record);
+        }
         record.setMainRecord(mainRecord);
-        mainRecord.getSubRecords().add(record);
-        record.setMainRegnum(mainRecord == null ? "" : mainRecord.getRegnum());
+        if (mainRecord != null) {
+            mainRecord.getSubRecords().add(record);
+            record.setMainRegnum(mainRecord.getRegnum());
+        }
+
     }
 
     @FXML
     protected void handleSelectBranchButtonAction(ActionEvent event) {
-
+        branchSelectController.showAndWait(stage);
+        if (branchSelectController.getResult() == Result.OK) {
+            branch = branchSelectController.getSelectedBranch();
+            branchTextField.setText(branch.getName());
+        }
     }
 
     @FXML
@@ -84,8 +97,11 @@ public class RecordController extends AbstractController {
         if (recordSelectController.getResult() == Result.OK) {
             mainRecord = recordSelectController.getSelectedRecord();
             mainRegnumTextField.setText(mainRecord.getRegnum());
-            branch = mainRecord.getBranch();
-            branchTextField.setText(branch.getName());
+            if (branch == null) {
+                branch = mainRecord.getBranch();
+                branchTextField.setText(branch.getName());
+            }
         }
     }
+
 }

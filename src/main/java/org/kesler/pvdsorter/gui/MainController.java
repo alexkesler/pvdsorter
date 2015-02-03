@@ -265,12 +265,9 @@ public class MainController  implements Initializable
         recordController.showAndWait(stage, record);
         if (recordController.getResult() == AbstractController.Result.OK) {
 
-            branchRepository.saveBranch(record.getBranch());
+            recordRepository.addRecord(record);
+//            branchRepository.saveBranch(commonBranch);
             updateBranchesList();
-
-            Branch commonBranch = branchRepository.getCommonBranch();
-            commonBranch.addRecord(record);
-            branchRepository.saveBranch(commonBranch);
             updateRecordsTreeView(record.getBranch());
         }
     }
