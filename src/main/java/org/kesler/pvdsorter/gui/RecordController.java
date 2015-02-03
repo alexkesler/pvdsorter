@@ -84,7 +84,8 @@ public class RecordController extends AbstractController {
         if (recordSelectController.getResult() == Result.OK) {
             mainRecord = recordSelectController.getSelectedRecord();
             mainRegnumTextField.setText(mainRecord.getRegnum());
-
+            branch = mainRecord.getBranch();
+            branchTextField.setText(branch.getName());
         }
     }
 }
