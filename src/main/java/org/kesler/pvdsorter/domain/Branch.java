@@ -10,7 +10,7 @@ public class Branch {
     private String name;
     private String code;
     private List<Record> records;
-    private boolean all = false;
+    private boolean common = false;
 
 
     public Branch() {
@@ -33,8 +33,8 @@ public class Branch {
         return records;
     }
 
-    public boolean isAll() { return all; }
-    public void setAll(boolean all) { this.all = all; }
+    public boolean isCommon() { return common; }
+    public void setCommon(boolean common) { this.common = common; }
 
     public void addRecord(Record record) {
         if (!records.contains(record)) records.add(record);
