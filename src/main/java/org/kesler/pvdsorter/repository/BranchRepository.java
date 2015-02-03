@@ -8,8 +8,9 @@ import java.util.Collection;
 public interface BranchRepository {
     public void init();
     public Collection<Branch> getAllBrahches();
+    public Branch addBranchIfNotExist(Branch branch);
     public Branch getCommonBranch();
-    public void addBranch(Branch branch);
+    public void saveBranch(Branch branch);
     public void clearEmptyBranches();
 
 }

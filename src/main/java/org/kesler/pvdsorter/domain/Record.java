@@ -12,7 +12,7 @@ public class Record {
     private Date regdate;
     private String mainRegnum;
     private Record mainRecord;
-    private Set<Record> subRecords = new HashSet<Record>();
+    private List<Record> subRecords = new ArrayList<Record>();
 
     private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
@@ -38,7 +38,13 @@ public class Record {
     public Record getMainRecord() { return mainRecord; }
     public void setMainRecord(Record mainRecord) { this.mainRecord = mainRecord; }
 
-    public Set<Record> getSubRecords() { return subRecords; }
+    public List<Record> getSubRecords() { return subRecords; }
+
+    public void addSubRecord(Record record) {
+        if (!subRecords.contains(record)) {
+            subRecords.add(record);
+        }
+    }
 
     @Override
     public String toString() {

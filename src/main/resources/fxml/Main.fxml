@@ -10,8 +10,8 @@
 
 <?import org.kesler.pvdsorter.util.NumberedCellValueFactory?>
 <?import org.kesler.pvdsorter.util.DateCellFactory?>
-
 <?import org.kesler.pvdsorter.util.RegnumCellValueFactory?>
+
 <VBox fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.kesler.pvdsorter.gui.MainController">
    <children>
       <MenuBar>
@@ -85,8 +85,8 @@
                            <contextMenu>
                               <ContextMenu>
                                 <items>
-                                  <MenuItem mnemonicParsing="false" text="Удалить" onAction="#handleDeletePopupMenuItemAction"/>
-                                    <MenuItem mnemonicParsing="false" text="Выбрать основное" onAction="#handleSelectMainPopupMenuItemAction" />
+                                  <MenuItem mnemonicParsing="false" onAction="#handleDeletePopupMenuItemAction" text="Удалить" />
+                                    <MenuItem mnemonicParsing="false" onAction="#handleSelectMainPopupMenuItemAction" text="Выбрать основное" />
                                 </items>
                               </ContextMenu>
                            </contextMenu>
@@ -97,6 +97,12 @@
             </SplitPane>
             <ProgressIndicator fx:id="searchProgressIndicator" layoutX="409.0" layoutY="27.0" prefHeight="29.0" prefWidth="32.0" visible="false" AnchorPane.leftAnchor="409.0" AnchorPane.topAnchor="27.0" />
             <ProgressIndicator fx:id="exportProgressIndicator" layoutX="108.0" layoutY="330.0" prefHeight="29.0" prefWidth="32.0" visible="false" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="108.0" />
+            <Label layoutX="373.0" layoutY="337.0" text="Записей без филиала" AnchorPane.bottomAnchor="18.0" AnchorPane.rightAnchor="91.0" />
+            <Label fx:id="ddCountLabel" layoutX="528.0" layoutY="336.0" text="Label" textFill="#3611c9" AnchorPane.bottomAnchor="19.0" AnchorPane.rightAnchor="39.0">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
          </children>
       </AnchorPane>
    </children>

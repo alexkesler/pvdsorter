@@ -7,7 +7,9 @@ import org.kesler.pvdsorter.gui.MainController;
 import org.kesler.pvdsorter.gui.RecordController;
 import org.kesler.pvdsorter.gui.RecordSelectController;
 import org.kesler.pvdsorter.repository.BranchRepository;
+import org.kesler.pvdsorter.repository.RecordRepository;
 import org.kesler.pvdsorter.repository.support.BranchRepositoryImpl;
+import org.kesler.pvdsorter.repository.support.RecordRepositoryImpl;
 import org.kesler.pvdsorter.service.RecordService;
 import org.kesler.pvdsorter.service.support.RecordRestServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +92,11 @@ public class PVDSorterAppFactory {
     @Bean
     public BranchRepository branchRepository() {
         return new BranchRepositoryImpl();
+    }
+
+    @Bean
+    public RecordRepository recordRepository() {
+        return new RecordRepositoryImpl();
     }
 
 
