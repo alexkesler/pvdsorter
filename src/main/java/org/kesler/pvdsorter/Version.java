@@ -5,8 +5,8 @@ package org.kesler.pvdsorter;
  */
 public abstract class Version {
 
-    private static String version = "1.1.0.0";
-    private static String releaseDate = "25.01.2015";
+    private static String version = "1.2.0.0";
+    private static String releaseDate = "04.02.2015";
 
     public static String getVersion() {
         return version;
