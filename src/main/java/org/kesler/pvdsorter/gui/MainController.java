@@ -1,5 +1,7 @@
 package org.kesler.pvdsorter.gui;
 
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -8,27 +10,33 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.controlsfx.control.Notifications;
-import org.controlsfx.dialog.Dialogs;
+import org.controlsfx.control.action.Action;
+import org.controlsfx.dialog.*;
+import org.controlsfx.dialog.Dialog;
 import org.kesler.pvdsorter.domain.Branch;
 import org.kesler.pvdsorter.domain.Record;
 import org.kesler.pvdsorter.export.RecordsExporter;
+import org.kesler.pvdsorter.repository.BranchRepository;
+import org.kesler.pvdsorter.repository.RecordRepository;
 import org.kesler.pvdsorter.service.RecordService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
+import java.net.URL;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 @Component
-public class MainController
+public class MainController  implements Initializable
 {
     private static final Logger log = LoggerFactory.getLogger(MainController.class);
 
@@ -44,7 +52,7 @@ public class MainController
     @FXML
     protected ListView<Branch> branchesListView;
     @FXML
-    protected TableView<Record> recordsTableView;
+    protected TreeTableView<Record> recordsTreeTableView;
     @FXML
     protected ProgressIndicator searchProgressIndicator;
     @FXML
@@ -56,25 +64,37 @@ public class MainController
     private RecordSelectController recordSelectController;
 
     @Autowired
+    private RecordController recordController;
+
+    @Autowired
     private AboutController aboutController;
 
-    private final ObservableList<Branch> observableBranches = FXCollections.observableArrayList();
-    private final ObservableList<Record> observableRecords = FXCollections.observableArrayList();
+    private ObservableList<Branch> observableBranches = FXCollections.observableArrayList();
+    private final ObservableList<Record> observableDdRecords = FXCollections.observableArrayList();
+
+
+    private RecordsTreeProcessor recordsTreeProcessor = new RecordsTreeProcessor();
 
     @Autowired
     private RecordService recordService;
 
-    @FXML
-    protected void initialize() {
+    @Autowired
+    private BranchRepository branchRepository;
+
+    @Autowired
+    private RecordRepository recordRepository;
+
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
         branchesListView.setItems(observableBranches);
-        recordsTableView.setItems(observableRecords);
-        initLists();
+        recordsTreeTableView.setShowRoot(false);
 
         branchesListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Branch>() {
             @Override
             public void changed(ObservableValue<? extends Branch> observable, Branch oldValue, Branch newValue) {
-                observableRecords.clear();
-                observableRecords.addAll(newValue.getRecords());
+                if (newValue!=null)
+                    updateRecordsTreeView(newValue);
             }
         });
     }
@@ -88,6 +108,11 @@ public class MainController
         this.stage = stage;
     }
 
+    public void show() {
+        updateBranchesList();
+        stage.show();
+    }
+
     @FXML
     protected void handleSearchButtonAction(ActionEvent ev) {
         log.info("Find record by code: " + searchTextField.getText());
@@ -98,7 +123,7 @@ public class MainController
     @FXML
     protected void handlePrintButtonAction(ActionEvent ev) {
         Branch selectedBranch = branchesListView.getSelectionModel().getSelectedItem();
-        if (selectedBranch == null || selectedBranch.isAll()) {
+        if (selectedBranch == null || selectedBranch.isCommon()) {
             Notifications.create()
                     .owner(stage)
                     .title("Внимание")
@@ -114,6 +139,12 @@ public class MainController
 
 
     @FXML
+    protected void handleClearMenuItemAction(ActionEvent event) {
+        log.info("Clear lists");
+        branchRepository.init();
+    }
+
+    @FXML
     protected void handleCloseMenuItemAction(ActionEvent event) {
         log.info("Close Main Window");
         stage.hide();
@@ -124,14 +155,24 @@ public class MainController
         aboutController.show(stage);
     }
 
-    private void initLists() {
-        observableBranches.clear();
-        observableRecords.clear();
-        Branch allBranch = new Branch();
-        allBranch.setName("Все");
-        allBranch.setAll(true);
-        observableBranches.add(allBranch);
+    @FXML
+    protected void handleDeletePopupMenuItemAction(ActionEvent ev) {
+        Record selectedRecord = recordsTreeTableView.getSelectionModel().getSelectedItem().getValue();
+        if (selectedRecord != null) {
+            recordRepository.removeRecord(selectedRecord);
+            updateBranchesList();
+            updateRecordsTreeView(selectedRecord.getMainRecord()==null?selectedRecord.getBranch():selectedRecord.getMainRecord().getBranch());
+        }
+
     }
+
+    @FXML
+    protected void handleSelectMainPopupMenuItemAction(ActionEvent ev) {
+        Record selectedRecord = recordsTreeTableView.getSelectionModel().getSelectedItem().getValue();
+        if (selectedRecord!=null)
+            selectMain(selectedRecord);
+    }
+
 
     private void findRecord(String code) {
         RecordsReader recordsReader = new RecordsReader(code);
@@ -165,7 +206,7 @@ public class MainController
 
     }
 
-
+    // методы для включения / выключения элементов управления
     private void disableControls() {
         searchButton.disableProperty().setValue(true);
         exportButton.disableProperty().setValue(true);
@@ -179,7 +220,77 @@ public class MainController
 
     }
 
+    private void updateBranchesList() {
+        observableBranches.clear();
+        observableBranches.addAll(branchRepository.getAllBrahches());
+    }
 
+
+    // обновляет дерево записей
+    private void updateRecordsTreeView(Branch branch) {
+        if (branch == null) return;
+        recordsTreeTableView.setRoot(recordsTreeProcessor.getRootForRecords(branch.getRecords()));
+        for (TreeItem<Record> treeItem:recordsTreeTableView.getRoot().getChildren()) {
+            treeItem.setExpanded(true);
+        }
+        branchesListView.getSelectionModel().select(branch);
+    }
+
+    // выбираем основную запись для записи
+    private void selectMain(Record record) {
+        Collection<Record> records = new ArrayList<Record>(recordRepository.getAllRecords());
+        records.remove(record);  /// убираем это дело из списка
+        recordSelectController.showAndWait(stage,records);  // открываем контроллер выбора осн дела
+        if (recordSelectController.getResult() == AbstractController.Result.OK) {
+            Record mainRecord = recordSelectController.getSelectedRecord();
+            recordRepository.setMainRecord(record, mainRecord);
+
+            updateRecordsTreeView(mainRecord.getBranch());
+        }
+    }
+
+    // добавляем новую запись вручную
+    private void inputRecord(String regnum) {
+        Record record = new Record();
+        record.setRegnum(regnum);
+        recordController.showAndWait(stage, record);
+        if (recordController.getResult() == AbstractController.Result.OK) {
+
+            recordRepository.addRecord(record);
+//            branchRepository.saveBranch(commonBranch);
+            updateBranchesList();
+            updateRecordsTreeView(record.getBranch());
+        }
+    }
+
+    ///// Вспомогательные классы
+
+
+    class RecordsTreeProcessor {
+        private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+        TreeItem<Record> getRootForRecords(Collection<Record> records) {
+            log.info("Building tree for " + records.size() + " records");
+            TreeItem<Record> rootTreeItem = new TreeItem<Record>(new Record());
+
+            for (Record record : records) {
+                log.debug("Adding record: " + record.getRegnum());
+                TreeItem<Record> recordTreeItem = new TreeItem<Record>(record);
+                rootTreeItem.getChildren().add(recordTreeItem);
+                for (Record subRecord : record.getSubRecords()) {
+                    log.debug("Adding subRecord: " + subRecord);
+                    recordTreeItem.getChildren().add(new TreeItem<Record>(subRecord));
+                }
+            }
+
+            return rootTreeItem;
+        }
+
+
+    }
+
+
+    /// Классы для отработки логики в отдельном потоке
 
     class RecordsReader extends Task<Collection<Record>> {
         private final Logger log = LoggerFactory.getLogger(getClass());
@@ -216,13 +327,17 @@ public class MainController
             }
 
             if (records.size() == 0) {
-                Notifications.create()
+                Action response = Dialogs.create()
                         .owner(stage)
                         .title("Внимание")
-                        .text("Не найдено")
-                        .position(Pos.CENTER)
-                        .hideAfter(new Duration(1000))
-                        .showWarning();
+                        .message("Не найдено. Ввести вручную?")
+                        .actions(Dialog.ACTION_YES,Dialog.ACTION_NO)
+                        .showConfirm();
+
+                if (response == Dialog.ACTION_YES) {
+                    inputRecord(code);
+                }
+
                 searchTextField.requestFocus();
                 searchTextField.selectAll();
                 return;
@@ -242,22 +357,19 @@ public class MainController
                 record = records.iterator().next();
             }
 
-            Branch allBranch = observableBranches.get(0);
-            int branchIndex = observableBranches.indexOf(record.getBranch());
-            Branch branch;
-            if (branchIndex>0) {
-                branch = observableBranches.get(branchIndex);
-            } else {
-                branch = record.getBranch();
-                observableBranches.addAll(record.getBranch());
-            }
-            allBranch.addRecord(record);
-            branch.addRecord(record);
+            Branch commonBranch = branchRepository.getCommonBranch();
 
-            branchesListView.getSelectionModel().select(allBranch);
-            observableRecords.clear();
-            observableRecords.addAll(allBranch.getRecords());
-            recordsTableView.getSelectionModel().select(record);
+            Branch branch = record.getBranch();
+
+            recordRepository.addRecord(record);
+            updateBranchesList();
+
+            branchesListView.getSelectionModel().select(commonBranch);
+            recordsTreeTableView.setRoot(recordsTreeProcessor.getRootForRecords(commonBranch.getRecords()));
+            for (TreeItem<Record> treeItem : recordsTreeTableView.getRoot().getChildren()) {
+                treeItem.setExpanded(true);
+            }
+//            recordsTreeTableView.getSelectionModel().select();
 
             Notifications.create()
                     .owner(stage)
@@ -287,6 +399,7 @@ public class MainController
 
 
      }
+
 
     class RecordsExporterWorker extends Task<Void> {
         private RecordsExporter recordsExporter;

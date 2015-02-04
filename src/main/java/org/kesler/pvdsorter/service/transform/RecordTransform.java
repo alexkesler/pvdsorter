@@ -16,6 +16,7 @@ public abstract class RecordTransform {
         record.setBranch(BranchTransform.transform(recordDTO.getBranchDTO()));
         record.setRegnum(recordDTO.getRegnum());
         record.setRegdate(recordDTO.getRegdate());
+        record.setMainRegnum(recordDTO.getPrevRegnum());
 
         return record;
     }
@@ -37,6 +38,7 @@ public abstract class RecordTransform {
         recordDTO.setBranchDTO(BranchTransform.transform(record.getBranch()));
         recordDTO.setRegnum(record.getRegnum());
         recordDTO.setRegdate(record.getRegdate());
+        recordDTO.setPrevRegnum(record.getMainRegnum());
 
         return recordDTO;
     }

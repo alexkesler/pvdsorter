@@ -2,10 +2,14 @@ package org.kesler.pvdsorter;
 
 import javafx.fxml.FXMLLoader;
 
-import org.kesler.pvdsorter.gui.AboutController;
-import org.kesler.pvdsorter.gui.MainController;
-import org.kesler.pvdsorter.gui.RecordSelectController;
+import org.kesler.pvdsorter.gui.*;
+import org.kesler.pvdsorter.repository.BranchRepository;
+import org.kesler.pvdsorter.repository.RecordRepository;
+import org.kesler.pvdsorter.repository.support.BranchRepositoryImpl;
+import org.kesler.pvdsorter.repository.support.RecordRepositoryImpl;
+import org.kesler.pvdsorter.service.BranchService;
 import org.kesler.pvdsorter.service.RecordService;
+import org.kesler.pvdsorter.service.support.BranchRestServiceImpl;
 import org.kesler.pvdsorter.service.support.RecordRestServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -63,23 +67,7 @@ public class PVDSorterAppFactory {
         return restTemplate;
     }
 
-    @Bean
-    public MainController mainController() {
-        MainController mainController = loadController("/fxml/Main.fxml");
-        return mainController;
-    }
 
-    @Bean
-    public RecordSelectController recordSelectController() {
-        RecordSelectController recordSelectController = loadController("/fxml/RecordSelect.fxml");
-        return recordSelectController;
-    }
-
-    @Bean
-    public AboutController aboutController() {
-        AboutController aboutController = loadController("/fxml/About.fxml");
-        return aboutController;
-    }
 
     /**
      * Creates a WelcomeRestService which provides a nice wrapper around the REST calls the server, encapsulating all
@@ -98,7 +86,59 @@ public class PVDSorterAppFactory {
         return new RecordRestServiceImpl(env.getProperty("server.url"));
     }
 
+    @Bean
+    public BranchService branchService() {
+        return new BranchRestServiceImpl(env.getProperty("server.url"));
+    }
 
+
+
+    @Bean
+    public BranchRepository branchRepository() {
+        return new BranchRepositoryImpl();
+    }
+
+    @Bean
+    public RecordRepository recordRepository() {
+        return new RecordRepositoryImpl();
+    }
+
+
+    /**
+     * Controllers
+     *
+     */
+
+
+    @Bean
+    public MainController mainController() {
+        MainController mainController = loadController("/fxml/Main.fxml");
+        return mainController;
+    }
+
+    @Bean
+    public RecordSelectController recordSelectController() {
+        RecordSelectController recordSelectController = loadController("/fxml/RecordSelect.fxml");
+        return recordSelectController;
+    }
+
+    @Bean
+    public BranchSelectController branchSelectController() {
+        BranchSelectController branchSelectController = loadController("/fxml/BranchSelect.fxml");
+        return branchSelectController;
+    }
+
+    @Bean
+    public RecordController recordController() {
+        RecordController recordController = loadController("/fxml/Record.fxml");
+        return recordController;
+    }
+
+    @Bean
+    public AboutController aboutController() {
+        AboutController aboutController = loadController("/fxml/About.fxml");
+        return aboutController;
+    }
     /**
      * Convenience method for loading Controllers from FXML. FXML can be a little impure in its inter-dependencies
      * between client and server (it is quite biased to things being view driven and tightly couples the view into its
