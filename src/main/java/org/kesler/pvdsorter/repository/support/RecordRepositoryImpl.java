@@ -10,16 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 
 @Repository
 public class RecordRepositoryImpl implements RecordRepository {
     private  final Logger log = LoggerFactory.getLogger(this.getClass());
-
-    private Set<Record> ddWithoutMainRecords = new HashSet<Record>();
 
     @Autowired
     private BranchRepository branchRepository;
@@ -27,10 +23,11 @@ public class RecordRepositoryImpl implements RecordRepository {
     @Override
     public void addRecord(Record record) {
         log.info("Add record: " + record);
+        Branch commonBranch = branchRepository.getCommonBranch();
         if (record.getMainRegnum() == null || record.getMainRegnum().isEmpty()) {
             Branch branch = branchRepository.addBranchIfNotExist(record.getBranch());
             record.setBranch(branch);
-            Branch commonBranch = branchRepository.getCommonBranch();
+            commonBranch = branchRepository.getCommonBranch();
 
             branch.addRecord(record);
             commonBranch.addRecord(record);
@@ -42,7 +39,7 @@ public class RecordRepositoryImpl implements RecordRepository {
 
         } else {
             if (!findMainRecord(record))
-                ddWithoutMainRecords.add(record);
+                commonBranch.addRecord(record);
         }
 
     }
@@ -89,10 +86,12 @@ public class RecordRepositoryImpl implements RecordRepository {
 
     private void findSubRecords(Record mainRecord) {
         log.info("Find subRecords for record: " + mainRecord);
-        Iterator<Record> recordIterator = ddWithoutMainRecords.iterator();
+        Iterator<Record> recordIterator = getAllRecords().iterator();
         while (recordIterator.hasNext()) {
             Record subRecord = recordIterator.next();
-            if (subRecord.getMainRegnum().equals(mainRecord.getRegnum())) {
+            if (subRecord.getMainRecord()==null &&
+                    subRecord.getMainRegnum()!=null &&
+                    subRecord.getMainRegnum().equals(mainRecord.getRegnum())) {
                 log.debug(">> find subRecord "+ subRecord);
                 subRecord.setMainRecord(mainRecord);
                 mainRecord.addSubRecord(subRecord);

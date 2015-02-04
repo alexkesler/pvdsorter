@@ -58,8 +58,6 @@ public class MainController  implements Initializable
     @FXML
     protected Button exportButton;
     @FXML
-    protected Label ddCountLabel;
-    @FXML
     protected ProgressIndicator exportProgressIndicator;
 
     @Autowired
@@ -91,13 +89,6 @@ public class MainController  implements Initializable
     public void initialize(URL location, ResourceBundle resources) {
         branchesListView.setItems(observableBranches);
         recordsTreeTableView.setShowRoot(false);
-
-        observableDdRecords.addListener(new InvalidationListener() {
-            @Override
-            public void invalidated(Observable observable) {
-                ddCountLabel.setText(observableDdRecords.size() + "");
-            }
-        });
 
         branchesListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Branch>() {
             @Override
