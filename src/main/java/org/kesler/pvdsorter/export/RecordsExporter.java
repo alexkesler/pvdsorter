@@ -132,10 +132,10 @@ public class RecordsExporter {
                         value += rownum+1;
                         break;
                     case 1:
-                        value = record.getRegnum();
+                        value = getRegnumWSubRegnums(record);
                         break;
                     case 2:
-                        value = record.getRegdateString();
+                        value = getRegdateWSubRegdates(record);
                         break;
                     default:
                         break;
@@ -149,6 +149,7 @@ public class RecordsExporter {
                 cellStyle.setBorderLeft(CellStyle.BORDER_THIN);
                 cellStyle.setBorderRight(CellStyle.BORDER_THIN);
                 cellStyle.setBorderBottom(CellStyle.BORDER_THIN);
+                cellStyle.setVerticalAlignment(CellStyle.VERTICAL_TOP);
 
                 cell.setCellStyle(cellStyle);
             }
@@ -180,6 +181,29 @@ public class RecordsExporter {
 
 
 
+    }
+
+    private String getRegnumWSubRegnums(Record record) {
+        String regnums = record.getRegnum();
+        if (record.getSubRecords().size() > 0) {
+            for (Record subRecord : record.getSubRecords()) {
+                regnums+="\n"+subRecord.getRegnum();
+            }
+        }
+
+        return regnums;
+    }
+
+    private String getRegdateWSubRegdates(Record record) {
+        String regdates = record.getRegdateString();
+
+        if (record.getSubRecords().size() > 0) {
+            for (Record subRecord : record.getSubRecords()) {
+                regdates+="\n"+subRecord.getRegdateString();
+            }
+        }
+
+        return regdates;
     }
 
 
